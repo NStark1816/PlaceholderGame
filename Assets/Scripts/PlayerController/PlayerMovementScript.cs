@@ -6,7 +6,10 @@ using UnityEngine.Events;
 namespace PlayerControllerCustom{
     public class PlayerMovementScript : MonoBehaviour
     {
-        //Rigidbody playerRigidbody;
+        Rigidbody playerRigidbody;
+        CapsuleCollider playerCollider;
+        float colliderScaleX, colliderScaleY, colliderScaleZ;
+        public LayerMask GroundLayer;
 
         public float decelerationSpeed;
         public float accelerationSpeed;
@@ -14,25 +17,41 @@ namespace PlayerControllerCustom{
         public float minZSpeed;
         public float maxXSpeed;
         public float minXSpeed;
-        public float playerZDirection;
-        public float playerXDirection;
+        public float jumpAmount;
 
-        public float playerZSpeed;
-        public float playerXSpeed;
+        private float playerZDirection;
+        private float playerXDirection;
+        private float playerZSpeed;
+        private float playerXSpeed;
+        private float distToGround;
         // Start is called before the first frame update
         void Start()
         {
-            //playerRigidbody = GetComponent<Rigidbody>();
+            playerRigidbody = GetComponent<Rigidbody>();
+            playerCollider = GetComponent<CapsuleCollider>();
+            distToGround = GetComponent<Collider>().bounds.extents.y;
+
+            colliderScaleX = transform.localScale.x;
+            colliderScaleY = transform.localScale.y;
+            colliderScaleZ = transform.localScale.z;
         }
 
         // Update is called once per frame
         void Update()
         {
-            playerZDirection = Input.GetAxis("Vertical");
-            playerXDirection = Input.GetAxis("Horizontal");
+            playerZDirection = Input.GetAxisRaw("Vertical");
+            playerXDirection = Input.GetAxisRaw("Horizontal");
             
-            //playerRigidbody.velocity = new Vector3(XPlayerMovement(playerXDirection), 0, ZPlayerMovement(playerZDirection));
-            transform.Translate(new Vector3(XPlayerMovement(playerXDirection), 0, ZPlayerMovement(playerZDirection)));
+            //playerRigidbody.velocity = (new Vector3(XPlayerMovement(playerXDirection), 0, ZPlayerMovement(playerZDirection)) * transform.forward);
+            transform.Translate((new Vector3(XPlayerMovement(playerXDirection) * Time.deltaTime, 0, ZPlayerMovement(playerZDirection)* Time.deltaTime)));
+
+            Debug.Log(IsGrounded().ToString());
+            if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
+            {
+                playerRigidbody.AddForce(Vector3.up * jumpAmount);
+            }
+
+            
         }
 
         public float ZPlayerMovement(float zDirection)
@@ -143,6 +162,13 @@ namespace PlayerControllerCustom{
             }
 
             return playerXSpeed;
+        }
+
+        public bool IsGrounded()
+        {
+            return Physics.CheckCapsule(playerCollider.bounds.center,
+            new Vector3(playerCollider.bounds.center.x,playerCollider.bounds.min.y + 0.25f,playerCollider.bounds.center.z),
+            0.5f, GroundLayer);
         }
     }
 }
