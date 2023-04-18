@@ -6,15 +6,14 @@ public class CameraMouselookScript : MonoBehaviour
 {
     public float mouseSensitivity;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    public float inputXAxis;
 
     // Update is called once per frame
     void Update()
     {
-        transform.Rotate((new Vector3((Input.GetAxis("Mouse Y") * -1), 0, 0)) * Time.deltaTime * mouseSensitivity);
+        inputXAxis = Input.GetAxis("Mouse Y") * -1;
+
+        //if (inputXAxis )
+            transform.Rotate((new Vector3((inputXAxis), 0, 0)) * Time.deltaTime * mouseSensitivity);
     }
 }
