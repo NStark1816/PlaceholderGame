@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace PlayerControllerCustom{
+
     public class PlayerMovementScript : MonoBehaviour
     {
         Rigidbody playerRigidbody;
@@ -26,6 +26,7 @@ namespace PlayerControllerCustom{
         private float playerXDirection;
         private float currentMaxSpeed;
         private float distToGround;
+        private bool canMove;
         private bool jumpInput;
         private bool playerIsGrounded;
         private bool playerIsTouchingWall;
@@ -51,6 +52,8 @@ namespace PlayerControllerCustom{
             jumpCollider = GetComponentInChildren<CapsuleCollider>();
             distToGround = jumpCollider.bounds.extents.y;
 
+            canMove = true;
+
             colliderScaleX = transform.localScale.x;
             colliderScaleY = transform.localScale.y;
             colliderScaleZ = transform.localScale.z;
@@ -59,59 +62,58 @@ namespace PlayerControllerCustom{
         // Update is called once per frame
         void Update()
         {
-            playerZDirection = Input.GetAxisRaw("Vertical");
-            playerXDirection = Input.GetAxisRaw("Horizontal");
-            playerIsGrounded = IsGrounded();
-            playerIsTouchingWall = IsTouchingWall();
-            jumpInput = Input.GetKeyDown(KeyCode.Space);
+            if(canMove){
+                playerZDirection = Input.GetAxisRaw("Vertical");
+                playerXDirection = Input.GetAxisRaw("Horizontal");
+                playerIsGrounded = IsGrounded();
+                playerIsTouchingWall = IsTouchingWall();
+                jumpInput = Input.GetKeyDown(KeyCode.Space);
 
-            //change drag
-            if (playerIsGrounded)
-                playerRigidbody.drag = groundDrag;
-            else
-                playerRigidbody.drag = 0;
-            
-            //debug message
-            //Debug.Log(playerIsGrounded.ToString());
-
-            //Jump
-            if (jumpInput)
-            {
-                if(playerIsGrounded)
+                //change drag
+                if (playerIsGrounded)
+                    playerRigidbody.drag = groundDrag;
+                else
+                    playerRigidbody.drag = 0;
+                
+                //Jump
+                if (jumpInput)
                 {
-                    playerRigidbody.AddForce(Vector3.up * jumpAmount);
+                    if(playerIsGrounded)
+                    {
+                        playerRigidbody.AddForce(Vector3.up * jumpAmount);
+                    }
+
                 }
 
+                limitSpeed();
             }
-
-            limitSpeed();
-
         }
 
         void FixedUpdate()
         {
-            MovePlayer();
-
-            ////    Tested solutions with old movement system    ////
-            /*
-            if(playerIsGrounded)
+            if(canMove)
             {
-                movementVector = new Vector3(XPlayerMovement(playerXDirection) * Time.deltaTime,
-                                            0f,
-                                            ZPlayerMovement(playerZDirection)* Time.deltaTime);
+                MovePlayer();
 
-                playerRigidbody.velocity = new Vector3(0, playerRigidbody.velocity.y, 0);
+                ////    Tested solutions with old movement system    ////
+                /*
+                if(playerIsGrounded)
+                {
+                    movementVector = new Vector3(XPlayerMovement(playerXDirection) * Time.deltaTime,
+                                                0f,
+                                                ZPlayerMovement(playerZDirection)* Time.deltaTime);
+
+                    playerRigidbody.velocity = new Vector3(0, playerRigidbody.velocity.y, 0);
+                }
+                */
+                //transform.Translate(movementVector);
+
+                //playerRigidbody.velocity = transform.TransformDirection(movementVector);
+                //playerRigidbody.AddForce(Physics.gravity,ForceMode.Acceleration);
+
+                //playerRigidbody.AddForce(movementVector, ForceMode.Force);
+
             }
-            */
-            //transform.Translate(movementVector);
-
-            //playerRigidbody.velocity = transform.TransformDirection(movementVector);
-            //playerRigidbody.AddForce(Physics.gravity,ForceMode.Acceleration);
-
-            //playerRigidbody.AddForce(movementVector, ForceMode.Force);
-
-            
-            
         }
 
 
@@ -230,6 +232,16 @@ namespace PlayerControllerCustom{
         }
         */
 
+        public void LockMovement()
+        {
+            canMove = false;
+        }
+
+        public void UnlockMovement()
+        {
+            canMove = true;
+        }
+
         private void MovePlayer()
         {
             // calculate movement direction
@@ -245,16 +257,12 @@ namespace PlayerControllerCustom{
         public void limitSpeed()
         {
             velocityDirection = Vector3.Dot(transform.forward, playerRigidbody.velocity.normalized);
-            //debug message
-            //Debug.Log(velocityDirection.ToString());
             
             float appliedBackMod = 0f;
             if(velocityDirection < 0f)
                 appliedBackMod = backwardSpeedModifier * Mathf.Abs(velocityDirection);
 
             currentMaxSpeed = maxXSpeed + (ZSpeedModifier * Mathf.Abs(velocityDirection)) - appliedBackMod;
-            //debug message
-            Debug.Log(currentMaxSpeed.ToString());
 
             movementVector = new Vector3(playerRigidbody.velocity.x, 0f, playerRigidbody.velocity.z);
 
@@ -280,4 +288,3 @@ namespace PlayerControllerCustom{
         }
 
     }
-}
