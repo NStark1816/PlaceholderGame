@@ -32,6 +32,7 @@ using UnityEngine.Events;
         private bool playerIsTouchingWall;
         private Vector3 moveDirection;
         private Vector3 movementVector;
+        private Vector3 originalPos;
 
         ////    For old movement; obsolete    ////
         //public float maxZSpeed;
@@ -51,6 +52,7 @@ using UnityEngine.Events;
             playerCollider = GetComponent<CapsuleCollider>();
             jumpCollider = GetComponentInChildren<CapsuleCollider>();
             distToGround = jumpCollider.bounds.extents.y;
+            originalPos = transform.position;
 
             canMove = true;
 
@@ -114,6 +116,15 @@ using UnityEngine.Events;
                 //playerRigidbody.AddForce(movementVector, ForceMode.Force);
 
             }
+        }
+
+        void OnTriggerEnter(Collider other)
+        {
+            if(other.gameObject.tag == "Pit")
+            {
+                transform.position = originalPos;
+            }
+    
         }
 
 
